@@ -1,0 +1,3 @@
+Subscribe to ZMQ topic, count up events and send counts to [Stathat](https://www.stathat.com) periodically.
+
+go run main.go --topic=pageview -zmqsocket=tcp://:6000 --stathatAccount=my@email.com --interval=30s
