@@ -14,18 +14,21 @@ type Daemon struct {
 func (d *Daemon) listen() {
   for {
     msg, _ := d.socket.Recv(0)
-    
+
     reg, _ := regexp.Compile(`^(?:\w+)?\s+(.+)`)
     r := reg.FindStringSubmatch(string(msg))
-    
-    payload := r[1]
-    event, jsonErr := data.Decode([]byte(payload))
-    
-    if jsonErr != nil {
-      panic(jsonErr)
+
+    if len(r) > 1 {
+      payload := r[1]
+      event, jsonErr := data.Decode([]byte(payload))
+      if jsonErr != nil {
+        log.Println("Invalid data", jsonErr)
+      } else {
+       d.Dispatch(event)
+      }
+    } else {
+      log.Println("Irregular expression", string(msg))
     }
-    
-    d.Dispatch(event)
   }
 }
 
