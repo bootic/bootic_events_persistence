@@ -2,6 +2,7 @@ package socket
 
 import(
   "regexp"
+  "log"
   data "github.com/bootic/bootic_go_data"
   zmq "github.com/alecthomas/gozmq"
 )
