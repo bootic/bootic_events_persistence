@@ -2,8 +2,8 @@ package main
 
 import (
 	"bootic_stathat/client"
-	"bootic_stathat/socket"
 	"flag"
+	"github.com/bootic/bootic_zmq"
 	"log"
 	"time"
 )
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// Setup ZMQ subscriber +++++++++++++++++++++++++++++++
-	zmq, _ := socket.NewZMQSubscriber(zmqAddress, topic)
+	zmq, _ := booticzmq.NewZMQSubscriber(zmqAddress, topic)
 
 	log.Println("ZMQ socket started on", zmqAddress, "topic '", topic, "'")
 
