@@ -1,22 +1,22 @@
 package client
 
 import (
-  "time"
   data "github.com/bootic/bootic_go_data"
   stathat "github.com/stathat/go"
+  "time"
 )
 
 type BufferedClient struct {
-  eventName string
+  eventName      string
   stathatAccount string
-  Notifier data.EventsChannel
-  ticker *time.Ticker
-  count int
+  Notifier       data.EventsChannel
+  ticker         *time.Ticker
+  count          int
 }
 
 func (self *BufferedClient) Listen() {
   for {
-    <- self.Notifier
+    <-self.Notifier
     // evtType, _     := event.Get("type").String()
     self.increment()
     // log.Println("Event!", evtType)
@@ -38,8 +38,8 @@ func (self *BufferedClient) post(count int) {
 func (self *BufferedClient) tick() {
   for {
     select {
-    case <- self.ticker.C:
-      if self.count != 0{
+    case <-self.ticker.C:
+      if self.count != 0 {
         go self.post(self.count)
         self.reset()
       }
@@ -48,15 +48,15 @@ func (self *BufferedClient) tick() {
 }
 
 func NewBufferedClient(stathatAccount string, eventName string, duration time.Duration) (client *BufferedClient, err error) {
-  
+
   client = &BufferedClient{
     stathatAccount: stathatAccount,
-    eventName: eventName,
-    Notifier: make(data.EventsChannel, 1),
-    ticker: time.NewTicker(duration),
+    eventName:      eventName,
+    Notifier:       make(data.EventsChannel, 1),
+    ticker:         time.NewTicker(duration),
   }
-  
+
   go client.tick()
-  
+
   return
 }
