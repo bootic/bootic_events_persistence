@@ -11,3 +11,18 @@ Available back-end: [Keen-io](https://keen.io)
 ### Listen to HTTP JSON stream
 
     $ go run main.go --interval 5s --keenprojectid xxx --keenapikey zzz --transport httpstream --httpurl https://some.stream.com --httptoken foobar
+
+### Registering new backends
+
+A backend must implement the following interface
+
+```go
+import (
+	data "github.com/bootic/bootic_go_data"
+)
+
+type EventsPoster interface {
+	AddEvent(*data.Event)
+	Submit()
+}
+```

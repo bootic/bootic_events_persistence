@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type StatsClient interface {
+type EventsPoster interface {
 	AddEvent(*data.Event)
 	Submit()
 }
@@ -13,7 +13,7 @@ type StatsClient interface {
 type BufferedClient struct {
 	Notifier data.EventsChannel
 	ticker   *time.Ticker
-	clients  []StatsClient
+	clients  []EventsPoster
 }
 
 func (cl *BufferedClient) Listen() {
@@ -32,7 +32,7 @@ func (cl *BufferedClient) Listen() {
 	}
 }
 
-func (cl *BufferedClient) Register(c StatsClient) {
+func (cl *BufferedClient) Register(c EventsPoster) {
 	cl.clients = append(cl.clients, c)
 }
 
