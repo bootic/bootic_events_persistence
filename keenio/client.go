@@ -2,18 +2,12 @@ package keenio
 
 import (
   data "github.com/bootic/bootic_go_data"
-  "time"
-	"log"
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"log"
 	"fmt"
 )
-
-type StatsClient interface {
-	AddEvent(*data.Event)
-	Submit()
-}
 
 const(
 	KeenUrl = "https://api.keen.io/3.0/projects/%s/events?api_key=%s"
@@ -79,42 +73,4 @@ func NewClient(projectId, apiKey string) (client *Client) {
 	client.reset()
 
 	return
-}
-
-type BufferedClient struct {
-  Notifier			data.EventsChannel
-  ticker				*time.Ticker
-	clients				[]StatsClient
-}
-
-func (cl *BufferedClient) Listen() {
-  for {
-		select {
-		case event := <- cl.Notifier:
-			for i := range cl.clients {
-				cl.clients[i].AddEvent(event)
-			}
-		case <- cl.ticker.C:
-			for i := range cl.clients {
-				go cl.clients[i].Submit()
-			}
-		}
-    
-  }
-}
-
-func (cl *BufferedClient) Register(c StatsClient) {
-	cl.clients = append(cl.clients, c)
-}
-
-func NewBufferedClient(projectId, apiKey string, duration time.Duration) (client *BufferedClient, err error) {
-
-  client = &BufferedClient{
-    Notifier: make(data.EventsChannel, 1),
-    ticker: time.NewTicker(duration),
-  }
-
-	client.Register(NewClient(projectId, apiKey))
-
-  return
 }

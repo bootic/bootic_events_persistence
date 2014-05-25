@@ -2,13 +2,18 @@ package main
 
 import (
   "flag"
+  "log"
+  "time"
 	data "github.com/bootic/bootic_go_data"
   bootic_sse "github.com/bootic/bootic_sse_client"
 	bootic_zmq "github.com/bootic/bootic_zmq"
-  "log"
-  "time"
+	"bootic_events_persistence/backend"
 	"bootic_events_persistence/keenio"
 )
+
+type BooticStream interface {
+	SubscribeToType(data.EventsChannel, string)
+}
 
 func main() {
   var (
@@ -38,10 +43,6 @@ func main() {
 	  panic("INTERVAL cannot be parsed")
 	}
 
-	type BooticStream interface {
-		SubscribeToType(data.EventsChannel, string)
-	}
-
 	var stream BooticStream
 
   // Setup ZMQ or HTTP subscriber +++++++++++++++++++++++++++++++
@@ -58,15 +59,20 @@ func main() {
 	  panic(err)
 	}
 
-	// Keen.io buffered client
-	keenClient, err := keenio.NewBufferedClient(keenProjectId, keenApiKey, duration)
+	// multi-backend buffered client
+	backends, err := backend.NewBufferedClient(duration)
 	if err != nil {
 	  panic(err)
 	}
 
-	stream.SubscribeToType(keenClient.Notifier, topic)
+	// Keen.io backend
+	keenCl := keenio.NewClient(keenProjectId, keenApiKey)
+	backends.Register(keenCl)
+
+	// Push events to all registered backends
+	stream.SubscribeToType(backends.Notifier, topic)
 
 	log.Println("Sending events to Keenio as", keenProjectId)
-	keenClient.Listen()
+	backends.Listen()
 
 }
