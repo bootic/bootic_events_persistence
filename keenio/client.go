@@ -1,24 +1,24 @@
 package keenio
 
 import (
-  data "github.com/bootic/bootic_go_data"
 	"bytes"
 	"encoding/json"
-	"net/http"
-	"log"
 	"fmt"
+	data "github.com/bootic/bootic_go_data"
+	"log"
+	"net/http"
 )
 
-const(
+const (
 	KeenUrl = "https://api.keen.io/3.0/projects/%s/events?api_key=%s"
 )
 
 type Client struct {
-  projectId			string
-  apiKey				string
-	url						string
-	buffer				map[string][]interface{}
-	eventCount		int
+	projectId  string
+	apiKey     string
+	url        string
+	buffer     map[string][]interface{}
+	eventCount int
 }
 
 type metaData struct {
@@ -26,8 +26,8 @@ type metaData struct {
 }
 
 func (c *Client) AddEvent(event *data.Event) {
-	evtType, _  := event.Get("type").String()
-	evtTime, _  := event.Get("time").String()
+	evtType, _ := event.Get("type").String()
+	evtTime, _ := event.Get("time").String()
 	evtPayload, _ := event.Get("data").Map()
 
 	evtPayload["keen"] = &metaData{evtTime}
@@ -66,8 +66,8 @@ func NewClient(projectId, apiKey string) (client *Client) {
 
 	client = &Client{
 		projectId: projectId,
-		apiKey: apiKey,
-		url: fmt.Sprintf(KeenUrl, projectId, apiKey),
+		apiKey:    apiKey,
+		url:       fmt.Sprintf(KeenUrl, projectId, apiKey),
 	}
 
 	client.reset()

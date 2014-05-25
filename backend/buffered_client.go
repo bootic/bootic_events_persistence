@@ -1,8 +1,8 @@
 package backend
 
 import (
-  data "github.com/bootic/bootic_go_data"
-  "time"
+	data "github.com/bootic/bootic_go_data"
+	"time"
 )
 
 type StatsClient interface {
@@ -11,25 +11,25 @@ type StatsClient interface {
 }
 
 type BufferedClient struct {
-  Notifier			data.EventsChannel
-  ticker				*time.Ticker
-	clients				[]StatsClient
+	Notifier data.EventsChannel
+	ticker   *time.Ticker
+	clients  []StatsClient
 }
 
 func (cl *BufferedClient) Listen() {
-  for {
+	for {
 		select {
-		case event := <- cl.Notifier:
+		case event := <-cl.Notifier:
 			for i := range cl.clients {
 				cl.clients[i].AddEvent(event)
 			}
-		case <- cl.ticker.C:
+		case <-cl.ticker.C:
 			for i := range cl.clients {
 				go cl.clients[i].Submit()
 			}
 		}
-    
-  }
+
+	}
 }
 
 func (cl *BufferedClient) Register(c StatsClient) {
@@ -38,10 +38,10 @@ func (cl *BufferedClient) Register(c StatsClient) {
 
 func NewBufferedClient(duration time.Duration) (client *BufferedClient, err error) {
 
-  client = &BufferedClient{
-    Notifier: make(data.EventsChannel, 1),
-    ticker: time.NewTicker(duration),
-  }
+	client = &BufferedClient{
+		Notifier: make(data.EventsChannel, 1),
+		ticker:   time.NewTicker(duration),
+	}
 
-  return
+	return
 }
