@@ -2,7 +2,9 @@ package main
 
 import (
   "flag"
-  datasource "github.com/bootic/bootic_sse_client"
+	data "github.com/bootic/bootic_go_data"
+  bootic_sse "github.com/bootic/bootic_sse_client"
+	bootic_zmq "github.com/bootic/bootic_zmq"
   "log"
   "time"
 	"bootic_keenio/keen"
@@ -11,13 +13,23 @@ import (
 func main() {
   var (
     interval       string
-		projectId			 string
-		apiKey			 	 string
+		keenProjectId	 string
+		keenApiKey		 string
+		httpToken			 string
+		httpUrl			 	 string
+		transport			 string
+    topic          string
+    zmqAddress     string
   )
 
   flag.StringVar(&interval, "interval", "60s", "Time interval to send stats on. Ie. 30s, 2m, etc")
-  flag.StringVar(&projectId, "projectid", "", "Keen.io project id")
-  flag.StringVar(&apiKey, "apikey", "", "Keen.io API Key")
+  flag.StringVar(&keenProjectId, "keenprojectid", "", "Keen.io project id")
+  flag.StringVar(&keenApiKey, "keenapikey", "", "Keen.io API Key")
+  flag.StringVar(&httpToken, "httptoken", "", "Token to use if transport is httpstream")
+  flag.StringVar(&httpUrl, "httpurl", "", "URL to use if transport is httpstream")
+  flag.StringVar(&transport, "transport", "zmq", "What stream transport to listen to (zmq or httpstream)")
+  flag.StringVar(&topic, "topic", "all", "Stream topic to subscribe to") // event type. ie "order", "pageview"
+  flag.StringVar(&zmqAddress, "zmqsocket", "tcp://127.0.0.1:6000", "ZMQ socket address to bind to")
 
   flag.Parse()
 
@@ -26,28 +38,35 @@ func main() {
 	  panic("INTERVAL cannot be parsed")
 	}
 
-  // Setup ZMQ subscriber +++++++++++++++++++++++++++++++
-  stream, _ := datasource.NewClient("https://tracker.bootic.net/stream?raw=1", "b00t1csse")
+	type BooticStream interface {
+		SubscribeToType(data.EventsChannel, string)
+	}
 
-	// Keen.io buffered client
-	keenClient, err := keen.NewBufferedClient(projectId, apiKey, duration)
+	var stream BooticStream
+
+  // Setup ZMQ or HTTP subscriber +++++++++++++++++++++++++++++++
+	switch transport {
+	case "httpstream":
+		stream, err = bootic_sse.NewClient(httpUrl, httpToken)
+		log.Println("Listening on HTTP stream", httpUrl)
+	default:
+		stream, err = bootic_zmq.NewZMQSubscriber(zmqAddress, "")
+		log.Println("Listening on ZMQ stream", zmqAddress)
+	}
+
 	if err != nil {
 	  panic(err)
 	}
 
-	stream.Subscribe(keenClient.Notifier)
+	// Keen.io buffered client
+	keenClient, err := keen.NewBufferedClient(keenProjectId, keenApiKey, duration)
+	if err != nil {
+	  panic(err)
+	}
 
-	log.Println("Sending events to Keenio as", projectId)
+	stream.SubscribeToType(keenClient.Notifier, topic)
+
+	log.Println("Sending events to Keenio as", keenProjectId)
 	keenClient.Listen()
-
-  // cl, err := client.NewBufferedClient(stathatAccount, topic, duration)
- //  if err != nil {
- //    panic("Client could not connect")
- //  }
- // 
- //  log.Println("Sending", topic, "events to Stathat as", stathatAccount)
- //  zmq.SubscribeToType(cl.Notifier, topic)
- // 
- //  cl.Listen()
 
 }
