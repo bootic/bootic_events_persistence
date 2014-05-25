@@ -1,46 +1,53 @@
 package main
 
 import (
-  "bootic_stathat/client"
   "flag"
-  "github.com/bootic/bootic_zmq"
+  datasource "github.com/bootic/bootic_sse_client"
   "log"
   "time"
+	"bootic_keenio/keen"
 )
 
 func main() {
   var (
-    topic          string
-    zmqAddress     string
-    stathatAccount string
     interval       string
+		projectId			 string
+		apiKey			 	 string
   )
 
-  flag.StringVar(&topic, "topic", "", "ZMQ topic to subscribe to") // event type. ie "order", "pageview"
-  flag.StringVar(&zmqAddress, "zmqsocket", "tcp://127.0.0.1:6000", "ZMQ socket address to bind to")
-  flag.StringVar(&stathatAccount, "stathatAccount", "", "Stathat email or account key")
   flag.StringVar(&interval, "interval", "60s", "Time interval to send stats on. Ie. 30s, 2m, etc")
+  flag.StringVar(&projectId, "projectid", "", "Keen.io project id")
+  flag.StringVar(&apiKey, "apikey", "", "Keen.io API Key")
 
   flag.Parse()
 
-  duration, err := time.ParseDuration(interval)
-  if err != nil {
-    panic("INTERVAL cannot be parsed")
-  }
+	duration, err := time.ParseDuration(interval)
+	if err != nil {
+	  panic("INTERVAL cannot be parsed")
+	}
 
   // Setup ZMQ subscriber +++++++++++++++++++++++++++++++
-  zmq, _ := booticzmq.NewZMQSubscriber(zmqAddress, topic)
+  stream, _ := datasource.NewClient("https://tracker.bootic.net/stream?raw=1", "b00t1csse")
 
-  log.Println("ZMQ socket started on", zmqAddress, "topic '", topic, "'")
+	// Keen.io buffered client
+	keenClient, err := keen.NewBufferedClient(projectId, apiKey, duration)
+	if err != nil {
+	  panic(err)
+	}
 
-  cl, err := client.NewBufferedClient(stathatAccount, topic, duration)
-  if err != nil {
-    panic("Client could not connect")
-  }
+	stream.Subscribe(keenClient.Notifier)
 
-  log.Println("Sending", topic, "events to Stathat as", stathatAccount)
-  zmq.SubscribeToType(cl.Notifier, topic)
+	log.Println("Sending events to Keenio as", projectId)
+	keenClient.Listen()
 
-  cl.Listen()
+  // cl, err := client.NewBufferedClient(stathatAccount, topic, duration)
+ //  if err != nil {
+ //    panic("Client could not connect")
+ //  }
+ // 
+ //  log.Println("Sending", topic, "events to Stathat as", stathatAccount)
+ //  zmq.SubscribeToType(cl.Notifier, topic)
+ // 
+ //  cl.Listen()
 
 }
