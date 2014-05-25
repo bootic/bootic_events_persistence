@@ -1,3 +1,13 @@
-Subscribe to ZMQ topic, count up events and send counts to [Stathat](https://www.stathat.com) periodically.
+## Bootic events persistence.
 
-go run main.go --topic=pageview -zmqsocket=tcp://:6000 --stathatAccount=my@email.com --interval=30s
+Subscribe to ZMQ or long-lived HTTP stream and POST events to different backends.
+
+Available back-end: [Keen-io](https://keen.io)
+
+### Listen to ZMQ stream
+
+    $ go run main.go --interval 5s --keenprojectid xxx --keenapikey zzz --zmqsocket tcp://127.0.0.1:6000
+
+### Listen to HTTP JSON stream
+
+    $ go run main.go --interval 5s --keenprojectid xxx --keenapikey zzz --transport httpstream --httpurl https://some.stream.com --httptoken foobar
