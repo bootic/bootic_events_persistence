@@ -5,7 +5,7 @@ import (
 	"bootic_events_persistence/keenio"
 	"flag"
 	data "github.com/bootic/bootic_go_data"
-	bootic_sse "github.com/bootic/bootic_sse_client"
+	bootic_sse "github.com/bootic/bootic_sse"
 	bootic_zmq "github.com/bootic/bootic_zmq"
 	"log"
 	"time"
