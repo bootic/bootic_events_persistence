@@ -45,13 +45,13 @@ func (c *Client) Submit() {
 	c.reset()
 	jsonBytes, err := json.Marshal(buff)
 	if err != nil {
-		log.Fatal("Could not encode JSON", err, buff)
+		panic(fmt.Sprintf("Could not encode JSON: %v, %v", err, buff))
 	}
 
 	resp, err := http.Post(c.url, "application/json", bytes.NewReader(jsonBytes))
 	defer resp.Body.Close()
 	if err != nil {
-		log.Fatal("Could not POST JSON", err)
+		panic(fmt.Sprintf("Could not POST JSON: %v", err))
 	}
 
 	log.Println(fmt.Sprintf("Sent %v events to KeenIo. Resp %v.", evtCount, resp.StatusCode))

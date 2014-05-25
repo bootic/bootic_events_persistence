@@ -3,6 +3,7 @@ package backend
 import (
 	data "github.com/bootic/bootic_go_data"
 	"time"
+	"log"
 )
 
 type EventsPoster interface {
@@ -25,7 +26,17 @@ func (cl *BufferedClient) Listen() {
 			}
 		case <-cl.ticker.C:
 			for i := range cl.clients {
-				go cl.clients[i].Submit()
+
+				go func(){
+			    defer func() {
+			      if err := recover(); err != nil {
+			        log.Println("Goroutine failed:", cl.clients[i], err)
+			      }
+			    }()
+
+					cl.clients[i].Submit()
+				}()
+
 			}
 		}
 
