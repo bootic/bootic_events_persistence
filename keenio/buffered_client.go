@@ -1,4 +1,4 @@
-package keen
+package keenio
 
 import (
   data "github.com/bootic/bootic_go_data"

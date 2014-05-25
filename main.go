@@ -7,7 +7,7 @@ import (
 	bootic_zmq "github.com/bootic/bootic_zmq"
   "log"
   "time"
-	"bootic_keenio/keen"
+	"bootic_events_persistence/keenio"
 )
 
 func main() {
@@ -59,7 +59,7 @@ func main() {
 	}
 
 	// Keen.io buffered client
-	keenClient, err := keen.NewBufferedClient(keenProjectId, keenApiKey, duration)
+	keenClient, err := keenio.NewBufferedClient(keenProjectId, keenApiKey, duration)
 	if err != nil {
 	  panic(err)
 	}
