@@ -29,10 +29,11 @@ func (c *Client) AddEvent(event *data.Event) {
 	evtType, _ := event.Get("type").String()
 	evtTime, _ := event.Get("time").String()
 	evtPayload, _ := event.Get("data").Map()
-
-	evtPayload["keen"] = &metaData{evtTime}
-	c.buffer[evtType] = append(c.buffer[evtType], evtPayload)
-	c.eventCount = c.eventCount + 1
+	if evtType != "pageview" {
+		evtPayload["keen"] = &metaData{evtTime}
+		c.buffer[evtType] = append(c.buffer[evtType], evtPayload)
+		c.eventCount = c.eventCount + 1
+	}
 }
 
 func (c *Client) Submit() {
